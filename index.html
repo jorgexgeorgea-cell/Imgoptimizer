@@ -3,37 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickMail Pro - Conexión Segura</title>
+    <title>QuickMail Pro - Conexión Forzada</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#0f172a] font-sans min-h-screen flex flex-col items-center py-10 px-4 text-white">
+<body class="bg-[#0f172a] min-h-screen flex flex-col items-center py-10 px-4 text-white">
 
     <div class="bg-[#1e293b] p-8 rounded-3xl shadow-2xl w-full max-w-xl border border-slate-700">
         <h1 class="text-3xl font-extrabold text-blue-400 mb-6 text-center italic">ProMail Pro 🚀</h1>
         
         <div class="bg-[#334155] p-6 rounded-xl mb-6 border border-slate-600">
-            <input type="text" id="userInput" placeholder="Nombre para tu correo..." class="w-full p-3 bg-slate-900 border border-slate-600 rounded-lg outline-none text-white mb-4 focus:ring-2 focus:ring-blue-500 text-center">
-            
+            <input type="text" id="userInput" placeholder="Escribe un nombre..." class="w-full p-3 bg-slate-900 border border-slate-600 rounded-lg outline-none text-white mb-4 text-center">
             <button onclick="generarTodo()" class="w-full bg-blue-600 py-4 rounded-xl font-bold hover:bg-blue-500 transition shadow-lg uppercase text-lg active:scale-95">
                 ⚡ ACTIVAR BANDEJA
             </button>
         </div>
 
         <div class="bg-slate-950 p-6 rounded-2xl border-2 border-blue-500/50 mb-8 text-center">
-            <input type="text" id="finalEmail" readonly class="w-full bg-transparent text-xl font-mono text-blue-400 text-center outline-none font-bold" value="CREA TU CORREO">
-            <button onclick="copiarTexto()" id="btnCopiar" class="mt-4 text-blue-300 text-[10px] font-bold uppercase hidden hover:underline">Copiar Dirección</button>
+            <input type="text" id="finalEmail" readonly class="w-full bg-transparent text-xl font-mono text-blue-400 text-center outline-none font-bold" value="SIN ACTIVAR">
         </div>
 
         <div class="border-t border-slate-700 pt-6">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-slate-200 uppercase text-[10px] font-bold tracking-widest italic font-sans">Bandeja de Entrada</h2>
-                <div id="signal" class="flex items-center">
-                    <div id="dot" class="h-2 w-2 bg-slate-600 rounded-full mr-2"></div>
-                    <span id="statusText" class="text-[9px] text-slate-500 font-bold uppercase italic font-sans">Inactivo</span>
+                <h2 class="text-slate-200 uppercase text-[10px] font-bold tracking-widest italic">Bandeja de Entrada</h2>
+                <div class="flex items-center">
+                    <div id="dot" class="h-2 w-2 bg-red-600 rounded-full mr-2"></div>
+                    <span id="statusText" class="text-[9px] text-slate-500 font-bold uppercase">Esperando...</span>
                 </div>
             </div>
             <div id="msgList" class="space-y-3 text-center text-slate-500 text-xs py-10 border-2 border-dashed border-slate-700 rounded-2xl">
-                Esperando conexión con el servidor...
+                Activa la bandeja para conectar.
             </div>
         </div>
     </div>
@@ -45,16 +43,14 @@
         function generarTodo() {
             const nombre = document.getElementById('userInput').value.trim().toLowerCase();
             const num = Math.floor(1000 + Math.random() * 9000);
-            let base = nombre ? nombre.replace(/[^a-z0-9]/g, '') + num : Math.random().toString(36).substring(2, 10);
-            correoActual = base + "@1secmail.com";
+            correoActual = (nombre ? nombre.replace(/[^a-z0-9]/g, '') + num : Math.random().toString(36).substring(2, 10)) + "@1secmail.com";
             
             document.getElementById('finalEmail').value = correoActual;
-            document.getElementById('btnCopiar').classList.remove('hidden');
-            document.getElementById('msgList').innerHTML = `<p class="animate-pulse text-blue-400 font-bold">Escaneando servidor...<br><span class="text-white">${correoActual}</span></p>`;
+            document.getElementById('msgList').innerHTML = `<p class="animate-pulse text-blue-400">Intentando conectar con el servidor...</p>`;
             
             if(intervalo) clearInterval(intervalo);
             buscarMensajes();
-            intervalo = setInterval(buscarMensajes, 6000);
+            intervalo = setInterval(buscarMensajes, 5000);
         }
 
         async function buscarMensajes() {
@@ -63,39 +59,30 @@
             const dot = document.getElementById('dot');
             const status = document.getElementById('statusText');
 
-            // Usamos un proxy de respaldo diferente para evitar el bloqueo de red
-            const apiURL = `https://www.1secmail.com/api/v1/?action=getMessages&login=${user}&domain=${dom}`;
-            const proxyURL = `https://api.allorigins.win/get?url=${encodeURIComponent(apiURL)}&cb=${Date.now()}`;
+            // CAMBIO DE ESTRATEGIA: Usamos un proxy que NO requiere configuración
+            const proxyURL = `https://api.codetabs.com/v1/proxy?quest=https://www.1secmail.com/api/v1/?action=getMessages&login=${user}&domain=${dom}`;
 
             try {
                 const res = await fetch(proxyURL);
-                const json = await res.json();
-                const data = JSON.parse(json.contents);
+                const data = await res.json();
                 const lista = document.getElementById('msgList');
 
+                // SI LLEGAMOS AQUÍ, EL PUNTO DEBE SER VERDE
                 dot.className = "h-2 w-2 bg-green-500 rounded-full mr-2 shadow-[0_0_8px_#22c55e]";
                 status.innerText = "Sincronizado";
 
                 if(data && data.length > 0) {
                     lista.innerHTML = "";
                     data.forEach(m => {
-                        lista.innerHTML += `
-                            <div class="p-4 bg-slate-800 border-l-4 border-blue-500 rounded text-left shadow-xl animate-in fade-in zoom-in duration-300">
-                                <p class="text-[9px] text-blue-400 font-bold uppercase font-sans">Nuevo Mensaje</p>
-                                <p class="text-[11px] text-slate-300 font-bold font-sans">De: ${m.from}</p>
-                                <p class="text-sm text-white font-medium mt-1 font-sans">${m.subject}</p>
-                            </div>`;
+                        lista.innerHTML += `<div class="p-4 bg-slate-800 border-l-4 border-blue-500 rounded text-left shadow-xl"><p class="text-xs text-blue-300">De: ${m.from}</p><p class="text-sm text-white font-bold">${m.subject}</p></div>`;
                     });
+                } else if (lista.innerText.includes("Intentando")) {
+                    lista.innerHTML = "Bandeja vacía. Esperando correos...";
                 }
             } catch (e) { 
-                dot.className = "h-2 w-2 bg-red-500 rounded-full mr-2";
+                dot.className = "h-2 w-2 bg-red-600 rounded-full mr-2";
                 status.innerText = "Reintentando...";
             }
-        }
-
-        function copiarTexto() {
-            navigator.clipboard.writeText(document.getElementById('finalEmail').value);
-            alert("¡Copiado al portapapeles!");
         }
     </script>
 </body>
