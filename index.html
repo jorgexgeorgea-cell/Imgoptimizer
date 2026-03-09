@@ -3,29 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickMail - Correos Temporales Gratis</title>
+    <title>QuickMail Pro - Correos Temporales</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen flex flex-col items-center py-10">
+<body class="bg-slate-900 font-sans min-h-screen flex flex-col items-center py-10 px-4">
 
-    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-xl border-t-8 border-blue-500">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">QuickMail ✉️</h1>
-        <p class="text-gray-500 text-center mb-8">Usa este correo para registrarte donde quieras y evitar el spam.</p>
+    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-xl">
+        <h1 class="text-3xl font-extrabold text-slate-800 mb-2 text-center">QuickMail Pro ✉️</h1>
+        <p class="text-slate-500 text-center mb-8">Crea correos temporales personalizados para tu empresa o uso personal.</p>
 
-        <div class="flex items-center space-x-2 mb-6">
-            <input type="text" id="emailAddr" readonly class="w-full p-4 bg-gray-50 border-2 border-dashed border-blue-200 rounded-lg text-lg font-mono text-blue-600 outline-none">
-            <button onclick="copyEmail()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-lg font-bold transition">Copiar</button>
+        <div class="bg-slate-50 p-4 rounded-xl mb-6 border border-slate-200">
+            <label class="block text-sm font-bold text-slate-700 mb-2 italic">¿Quieres un nombre específico?</label>
+            <div class="flex gap-2">
+                <input type="text" id="customName" placeholder="Ej: jorge.empresa" class="flex-1 p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="genEmail()" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-700 transition">Aplicar</button>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-2">* Si lo dejas vacío, será aleatorio.</p>
         </div>
 
-        <button onclick="genEmail()" class="w-full mb-8 text-blue-600 font-semibold hover:underline">Generar otro correo</button>
+        <div class="relative mb-8">
+            <input type="text" id="emailAddr" readonly class="w-full p-5 bg-blue-50 border-2 border-blue-200 rounded-2xl text-xl font-mono text-blue-700 text-center outline-none">
+            <button onclick="copyEmail()" class="absolute right-3 top-3 bg-blue-600 text-white p-2 px-4 rounded-xl hover:bg-blue-500 transition shadow-md">Copiar</button>
+        </div>
 
-        <div class="border-t pt-6">
-            <h2 class="text-xl font-bold text-gray-700 mb-4 flex justify-between">
-                Bandeja de Entrada 
-                <span id="loader" class="text-sm font-normal text-blue-500 hidden animate-pulse">Buscando mensajes...</span>
-            </h2>
-            <div id="emailsList" class="space-y-3">
-                <p class="text-center text-gray-400 py-10">Esperando mensajes entrantes...</p>
+        <div class="border-t border-slate-100 pt-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800 text-center w-full">Bandeja de Entrada</h2>
+            </div>
+            
+            <div id="loader" class="hidden flex justify-center mb-4">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-blue-600 text-sm">Buscando mensajes...</span>
+            </div>
+
+            <div id="emailsList" class="space-y-4">
+                <div class="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                    <p class="text-slate-400">Esperando mensajes para este correo...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -33,26 +47,35 @@
     <script>
         let currentEmail = "";
         const domain = "1secmail.com";
+        let timer = null;
 
-        // Generar nombre aleatorio
         function genEmail() {
-            const chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
-            let name = '';
-            for(let i=0; i<8; i++) name += chars[Math.floor(Math.random() * chars.length)];
+            const custom = document.getElementById('customName').value.trim().toLowerCase();
+            let name = "";
+
+            if(custom) {
+                // Limpiar el texto para que solo tenga letras y números
+                name = custom.replace(/[^a-z0-9.]/g, '');
+            } else {
+                const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+                for(let i=0; i<8; i++) name += chars[Math.floor(Math.random() * chars.length)];
+            }
+
             currentEmail = name + "@" + domain;
             document.getElementById('emailAddr').value = currentEmail;
-            document.getElementById('emailsList').innerHTML = '<p class="text-center text-gray-400 py-10">Bandeja vacía. Los mensajes aparecerán aquí.</p>';
+            document.getElementById('emailsList').innerHTML = '<div class="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200"><p class="text-slate-400">Bandeja vacía.</p></div>';
+            
+            if(timer) clearInterval(timer);
             checkMail();
+            timer = setInterval(checkMail, 5000); // Revisa cada 5 segundos
         }
 
         function copyEmail() {
             const el = document.getElementById('emailAddr');
-            el.select();
-            document.execCommand('copy');
-            alert("Correo copiado");
+            navigator.clipboard.writeText(el.value);
+            alert("¡Correo copiado!");
         }
 
-        // Revisar si hay correos nuevos cada 5 segundos
         async function checkMail() {
             if(!currentEmail) return;
             const [user, dom] = currentEmail.split('@');
@@ -61,21 +84,23 @@
             try {
                 const res = await fetch(`https://www.1secmail.com/api/v1/?action=getMessages&login=${user}&domain=${dom}`);
                 const emails = await res.json();
-                
                 const list = document.getElementById('emailsList');
+
                 if(emails.length > 0) {
                     list.innerHTML = "";
                     emails.forEach(mail => {
-                        const item = document.createElement('div');
-                        item.className = "p-4 bg-blue-50 rounded-lg border border-blue-100";
-                        item.innerHTML = `<strong>De:</strong> ${mail.from}<br><strong>Asunto:</strong> ${mail.subject}`;
-                        list.appendChild(item);
+                        list.innerHTML += `
+                            <div class="p-4 bg-white border border-blue-100 rounded-xl shadow-sm hover:border-blue-400 transition cursor-pointer">
+                                <p class="text-xs text-blue-500 font-bold uppercase mb-1">Nuevo Mensaje</p>
+                                <p class="text-sm text-slate-800"><strong>De:</strong> ${mail.from}</p>
+                                <p class="text-sm text-slate-600"><strong>Asunto:</strong> ${mail.subject}</p>
+                            </div>
+                        `;
                     });
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.log("Error al conectar"); }
             
             document.getElementById('loader').classList.add('hidden');
-            setTimeout(checkMail, 5000);
         }
 
         window.onload = genEmail;
