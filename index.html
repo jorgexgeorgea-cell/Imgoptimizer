@@ -3,53 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ImgOptimizador - Drag & Drop Activo</title>
+    <title>ImgOptimizador Pro - Ahorro Real</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-[#0f172a] text-slate-200 font-sans min-h-screen flex flex-col items-center py-10 px-4">
 
-    <div class="w-full max-w-4xl h-24 bg-slate-800/50 border border-dashed border-slate-700 rounded-lg mb-8 flex items-center justify-center text-slate-500 text-xs uppercase tracking-widest">
-        Publicidad - Espacio Disponible
-    </div>
-
     <div class="w-full max-w-2xl bg-[#1e293b] p-8 rounded-3xl shadow-2xl border border-slate-700">
         <header class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-blue-400 mb-2 italic">ImgOptimizador ⚡</h1>
-            <p class="text-slate-400 text-sm font-medium">Arrastra, convierte y descarga al instante.</p>
+            <h1 class="text-3xl font-extrabold text-blue-400 mb-2 italic tracking-tight">ImgOptimizador Pro ⚡</h1>
+            <p class="text-slate-400 text-sm">Optimización profesional sin que tus datos salgan de tu PC.</p>
         </header>
 
         <div id="dropZone" class="border-2 border-dashed border-blue-500/40 bg-slate-900/50 rounded-2xl p-10 text-center hover:bg-slate-800/50 transition-all cursor-pointer mb-6 group">
             <input type="file" id="fileInput" class="hidden" accept="image/*">
             <div class="flex flex-col items-center pointer-events-none">
-                <span id="icon" class="text-4xl mb-4 group-hover:scale-110 transition">🖼️</span>
-                <p class="text-lg font-semibold text-blue-100">Arrastra tu imagen aquí</p>
-                <p class="text-xs text-slate-500 mt-2 italic font-sans">O haz clic para buscar en tu PC</p>
+                <span class="text-4xl mb-4 group-hover:bounce">🖼️</span>
+                <p class="text-lg font-semibold text-blue-100">Suelta tu imagen aquí</p>
+                <p class="text-xs text-slate-500 mt-2 italic">PNG, JPG o WebP</p>
             </div>
         </div>
 
-        <div id="options" class="hidden space-y-6">
-            <div class="grid grid-cols-2 gap-4">
+        <div id="options" class="hidden space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            
+            <div class="grid grid-cols-3 gap-2 text-center mb-4">
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <p class="text-[9px] uppercase font-bold text-slate-500">Original</p>
+                    <p id="originalSize" class="text-sm font-mono text-white">-</p>
+                </div>
+                <div class="bg-blue-500/10 p-3 rounded-xl border border-blue-500/30">
+                    <p class="text-[9px] uppercase font-bold text-blue-400">Optimizado</p>
+                    <p id="finalSize" class="text-sm font-mono text-blue-300">-</p>
+                </div>
+                <div class="bg-green-500/10 p-3 rounded-xl border border-green-500/30">
+                    <p class="text-[9px] uppercase font-bold text-green-400">Ahorro</p>
+                    <p id="savings" class="text-sm font-mono text-green-300">0%</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                    <label class="block text-[10px] font-bold text-blue-300 uppercase mb-2">Formato</label>
-                    <select id="formatSelect" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 outline-none text-sm font-sans">
-                        <option value="image/webp">WebP (Recomendado)</option>
-                        <option value="image/jpeg">JPEG</option>
-                        <option value="image/png">PNG</option>
+                    <label class="block text-[10px] font-bold text-blue-300 uppercase mb-2">Formato de Salida</label>
+                    <select id="formatSelect" onchange="calcularPesoFinal()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 outline-none text-sm">
+                        <option value="image/webp">WebP (Más ligero)</option>
+                        <option value="image/jpeg">JPEG (Universal)</option>
+                        <option value="image/png">PNG (Sin pérdida)</option>
                     </select>
                 </div>
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                    <label class="block text-[10px] font-bold text-blue-300 uppercase mb-2">Calidad (0.1 - 1.0)</label>
-                    <input type="range" id="qualityRange" min="0.1" max="1.0" step="0.1" value="0.8" class="w-full accent-blue-500">
+                    <div class="flex justify-between mb-2">
+                        <label class="text-[10px] font-bold text-blue-300 uppercase">Calidad</label>
+                        <span id="qualityValue" class="text-[10px] font-bold text-white bg-blue-600 px-2 rounded">80%</span>
+                    </div>
+                    <input type="range" id="qualityRange" min="0.1" max="1.0" step="0.05" value="0.8" class="w-full accent-blue-500 cursor-pointer" oninput="updateQualityUI()">
                 </div>
             </div>
-            <button onclick="procesarImagen()" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-bold transition shadow-lg uppercase tracking-wider active:scale-95">
-                🚀 Convertir y Descargar
+
+            <button onclick="descargarImagen()" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-bold transition shadow-lg uppercase tracking-widest active:scale-95 text-lg">
+                ⬇️ Descargar Imagen
             </button>
-            <button onclick="location.reload()" class="w-full text-slate-500 text-[10px] uppercase font-bold hover:text-white transition">Subir otra imagen</button>
+            <button onclick="location.reload()" class="w-full text-slate-500 text-[10px] uppercase font-bold hover:text-white transition">Procesar otra diferente</button>
         </div>
 
         <div id="previewContainer" class="hidden mt-8 border-t border-slate-700 pt-6">
-            <img id="imagePreview" class="max-h-64 mx-auto rounded-lg shadow-lg border border-slate-700">
+            <img id="imagePreview" class="max-h-60 mx-auto rounded-lg shadow-2xl border border-slate-700">
         </div>
     </div>
 
@@ -59,69 +75,92 @@
         const options = document.getElementById('options');
         const imagePreview = document.getElementById('imagePreview');
         const previewContainer = document.getElementById('previewContainer');
-
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, e => {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
-        });
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('bg-blue-500/10', 'border-blue-400'), false);
-        });
         
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('bg-blue-500/10', 'border-blue-400'), false);
-        });
+        let originalFile = null;
+        let imgObj = new Image();
 
-        dropZone.addEventListener('drop', e => {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles(files[0]);
-        }, false);
+        // Herramienta para formatear bytes
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
 
-        fileInput.addEventListener('change', function() {
-            handleFiles(this.files[0]);
-        });
+        dropZone.onclick = () => fileInput.click();
+
+        fileInput.onchange = (e) => handleFiles(e.target.files[0]);
+
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('bg-blue-500/10'); };
+        dropZone.ondragleave = () => dropZone.classList.remove('bg-blue-500/10');
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            handleFiles(e.dataTransfer.files[0]);
+        };
 
         function handleFiles(file) {
             if (file && file.type.startsWith('image/')) {
+                originalFile = file;
+                document.getElementById('originalSize').innerText = formatBytes(file.size);
+                
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    imagePreview.src = e.target.result;
-                    dropZone.classList.add('hidden');
-                    options.classList.remove('hidden');
-                    previewContainer.classList.remove('hidden');
+                    imgObj.src = e.target.result;
+                    imgObj.onload = () => {
+                        imagePreview.src = imgObj.src;
+                        dropZone.classList.add('hidden');
+                        options.classList.remove('hidden');
+                        previewContainer.classList.remove('hidden');
+                        calcularPesoFinal();
+                    };
                 };
                 reader.readAsDataURL(file);
-            } else {
-                alert('Solo se permiten archivos de imagen.');
             }
         }
 
-        function procesarImagen() {
+        function updateQualityUI() {
+            const val = document.getElementById('qualityRange').value;
+            document.getElementById('qualityValue').innerText = Math.round(val * 100) + "%";
+            calcularPesoFinal();
+        }
+
+        function calcularPesoFinal() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            const img = new Image();
+            canvas.width = imgObj.width;
+            canvas.height = imgObj.height;
+            ctx.drawImage(imgObj, 0, 0);
+
+            const format = document.getElementById('formatSelect').value;
+            const quality = parseFloat(document.getElementById('qualityRange').value);
+
+            // Calculamos el peso sin descargar
+            canvas.toBlob((blob) => {
+                const size = blob.size;
+                document.getElementById('finalSize').innerText = formatBytes(size);
+                
+                // Cálculo de ahorro
+                const ahorrado = ((originalFile.size - size) / originalFile.size) * 100;
+                const savingsEl = document.getElementById('savings');
+                savingsEl.innerText = (ahorrado > 0 ? Math.round(ahorrado) : 0) + "%";
+            }, format, quality);
+        }
+
+        function descargarImagen() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = imgObj.width;
+            canvas.height = imgObj.height;
+            ctx.drawImage(imgObj, 0, 0);
+
+            const format = document.getElementById('formatSelect').value;
+            const quality = parseFloat(document.getElementById('qualityRange').value);
             
-            img.onload = () => {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                
-                const format = document.getElementById('formatSelect').value;
-                const quality = parseFloat(document.getElementById('qualityRange').value);
-                
-                const dataURL = canvas.toDataURL(format, quality);
-                const link = document.createElement('a');
-                link.download = `optimizada-${Date.now()}.${format.split('/')[1]}`;
-                link.href = dataURL;
-                link.click();
-            };
-            img.src = imagePreview.src;
+            const link = document.createElement('a');
+            link.download = `imagen-optimizada.${format.split('/')[1]}`;
+            link.href = canvas.toDataURL(format, quality);
+            link.click();
         }
     </script>
 </body>
